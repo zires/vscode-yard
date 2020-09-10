@@ -51,7 +51,19 @@ class MethodDef {
         return new description_1.DescriptionTag();
     }
     buildAuthor() {
-        return new author_1.AuthorTag();
+        try {
+            let path = vscode_1.workspace.workspaceFolders[0].uri.fsPath;
+            let username = child.execSync(`cd ${path} && git config user.name`).toString().trim();
+            let email = child.execSync(`cd ${path} && git config user.email`).toString().trim();
+            return new author_1.AuthorTag({
+                authorName: username,
+                authorEmail: email
+            });
+        }
+        catch (error) {
+            console.error("Couldn\'t find git repository");
+            return new author_1.AuthorTag();
+        }
     }
     buildIssue() {
         try {
