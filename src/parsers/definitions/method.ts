@@ -60,7 +60,18 @@ export default class MethodDef implements IBaseParser {
   }
 
   private buildAuthor(): IEntity {
-    return new AuthorTag();
+    try {
+      let path = workspace.workspaceFolders[0].uri.fsPath;
+      let username = child.execSync(`cd ${path} && git config user.name`).toString().trim();
+      let email = child.execSync(`cd ${path} && git config user.email`).toString().trim();
+      return new AuthorTag({
+        authorName: username,
+        authorEmail: email
+      });
+    } catch (error) {
+      console.error("Couldn\'t find git repository")
+      return new AuthorTag();
+    }
   }
 
   private buildIssue(): IEntity {
