@@ -1,10 +1,14 @@
 "use strict";
 import { DescriptionTag } from "../../tags/description";
+import { AuthorTag } from "../../tags/author";
+import { IssueTag } from "../../tags/issue";
 import { OptionTag } from "../../tags/option";
 import { ParamTag } from "../../tags/param";
 import { ReturnTag } from "../../tags/return";
 import { IEntity } from "../../types";
 import { IBaseParser } from "./base_parser";
+import { workspace } from "vscode";
+import * as child from 'child_process';
 
 // Parse a class or an instance method definition into documentation entities
 export default class MethodDef implements IBaseParser {
@@ -43,6 +47,8 @@ export default class MethodDef implements IBaseParser {
   public parse(): IEntity[] {
     return []
       .concat(this.buildDescription())
+      .concat(this.buildAuthor())
+      .concat(this.buildIssue())
       .concat(this.buildParams())
       .concat(this.buildReturn())
       .filter((element) => element !== undefined);
@@ -51,6 +57,21 @@ export default class MethodDef implements IBaseParser {
   // Build description section
   private buildDescription(): IEntity {
     return new DescriptionTag();
+  }
+
+  private buildAuthor(): IEntity {
+    return new AuthorTag();
+  }
+
+  private buildIssue(): IEntity {
+    try {
+      let path = workspace.workspaceFolders[0].uri.fsPath;
+      let data = child.execSync(`cd ${path} && git branch --show-current`).toString().trim();
+      return new IssueTag({text: data});
+    } catch (error) {
+      console.error("Couldn\'t find git repository")
+      return undefined;
+    }
   }
 
   // Build params section
